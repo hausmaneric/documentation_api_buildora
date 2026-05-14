@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { TimeoutError, finalize } from 'rxjs';
 import { ApiAuthMode, ApiEndpointDoc, ApiReferenceBundle, PlaygroundSession } from '../../models/api-docs';
 import { ApiDocsService } from '../../services/api-docs.service';
 
@@ -182,7 +182,7 @@ export class ApiReferenceComponent {
 
     const path = this.resolvePath(this.selectedEndpoint);
     const url = new URL(path, this.apiDocsService.getBaseUrl());
-    const query = this.safeParse(this.queryParams, {});
+    const query = this.compactObject(this.safeParse(this.queryParams, {}));
 
     Object.entries(query).forEach(([key, value]) => {
       if (value !== undefined && value !== null && String(value).trim() !== '') {
@@ -200,11 +200,11 @@ export class ApiReferenceComponent {
 
     const path = this.resolvePath(this.selectedEndpoint);
     const url = new URL(path, this.apiDocsService.getBaseUrl());
-    const query = this.safeParse(this.queryParams, {});
-    const headers = {
+    const query = this.compactObject(this.safeParse(this.queryParams, {}));
+    const headers = this.compactObject({
       ...this.buildDefaultHeaders(this.selectedEndpoint),
       ...this.safeParse(this.customHeaders, {})
-    } as Record<string, string>;
+    } as Record<string, string>);
 
     Object.entries(query).forEach(([key, value]) => {
       if (value !== undefined && value !== null && String(value).trim() !== '') {
@@ -277,11 +277,11 @@ export class ApiReferenceComponent {
 
     const path = this.resolvePath(this.selectedEndpoint);
     const url = new URL(path, this.apiDocsService.getBaseUrl());
-    const query = this.safeParse(this.queryParams, {});
-    const headers = {
+    const query = this.compactObject(this.safeParse(this.queryParams, {}));
+    const headers = this.compactObject({
       ...this.buildDefaultHeaders(this.selectedEndpoint),
       ...this.safeParse(this.customHeaders, {})
-    } as Record<string, string>;
+    } as Record<string, string>);
 
     Object.entries(query).forEach(([key, value]) => {
       if (value !== undefined && value !== null && String(value).trim() !== '') {
@@ -291,7 +291,7 @@ export class ApiReferenceComponent {
 
     let body: unknown;
     if (!['GET', 'DELETE'].includes(this.selectedMethod)) {
-      body = this.safeParse(this.requestBody, {});
+      body = this.compactObject(this.safeParse(this.requestBody, {}));
       headers['Content-Type'] = 'application/json';
     }
 
@@ -303,7 +303,21 @@ export class ApiReferenceComponent {
           this.responseStatus = `${response.status} ${response.statusText}`;
           this.responseBody = JSON.stringify(response.body, null, 2);
         },
-        error: (error: HttpErrorResponse) => {
+        error: (error: HttpErrorResponse | TimeoutError) => {
+          if (error instanceof TimeoutError) {
+            this.responseStatus = '408 Request Timeout';
+            this.responseBody = JSON.stringify(
+              {
+                status: false,
+                message: 'A API demorou mais de 20 segundos para responder a este endpoint.',
+                hint: 'Revise parâmetros obrigatórios, token atual e filtros antes de tentar novamente.'
+              },
+              null,
+              2
+            );
+            return;
+          }
+
           this.responseStatus = `${error.status} ${error.statusText}`;
           const bodyOutput = typeof error.error === 'string' ? error.error : JSON.stringify(error.error, null, 2);
           this.responseBody = bodyOutput;
@@ -400,5 +414,23 @@ export class ApiReferenceComponent {
     } catch {
       return fallback;
     }
+  }
+
+  private compactObject<T>(value: T): T {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => this.compactObject(item))
+        .filter((item) => item !== '' && item !== null && item !== undefined) as T;
+    }
+
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+          .filter(([, item]) => item !== '' && item !== null && item !== undefined)
+          .map(([key, item]) => [key, this.compactObject(item)])
+      ) as T;
+    }
+
+    return value;
   }
 }

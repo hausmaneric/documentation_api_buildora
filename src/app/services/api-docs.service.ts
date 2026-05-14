@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { forkJoin, map, Observable, of } from 'rxjs';
+import { forkJoin, map, Observable, of, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { endpointCatalog } from '../data/api-endpoints.catalog';
 import { ApiAuthMode, ApiEndpointDoc, ApiReferenceBundle, PlaygroundSession } from '../models/api-docs';
@@ -88,7 +88,7 @@ export class ApiDocsService {
       requestOptions['body'] = options.body;
     }
 
-    return this.http.request(method.toUpperCase(), url, requestOptions);
+    return this.http.request(method.toUpperCase(), url, requestOptions).pipe(timeout(20000));
   }
 
   buildCompleteCatalog(bundle: ApiReferenceBundle): ApiEndpointDoc[] {
