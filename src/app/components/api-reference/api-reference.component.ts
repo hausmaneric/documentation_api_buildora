@@ -37,6 +37,11 @@ export class ApiReferenceComponent {
   message = '';
   bundle: ApiReferenceBundle = {};
   totalRoutes = 0;
+  readonly authOptions = [
+    { mode: 'public', label: 'Públicas' },
+    { mode: 'master', label: 'Master' },
+    { mode: 'tenant', label: 'Tenant' }
+  ] as const;
 
   constructor(private apiDocsService: ApiDocsService) {
     this.session = this.apiDocsService.getStoredSession();
@@ -188,6 +193,40 @@ export class ApiReferenceComponent {
     this.requestPreview = `${this.selectedMethod} ${url.toString()}`;
   }
 
+  buildCurlPreview(): string {
+    if (!this.selectedEndpoint) {
+      return '';
+    }
+
+    const path = this.resolvePath(this.selectedEndpoint);
+    const url = new URL(path, this.apiDocsService.getBaseUrl());
+    const query = this.safeParse(this.queryParams, {});
+    const headers = {
+      ...this.buildDefaultHeaders(this.selectedEndpoint),
+      ...this.safeParse(this.customHeaders, {})
+    } as Record<string, string>;
+
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    const parts = [`curl -X ${this.selectedMethod}`, `"${url.toString()}"`];
+
+    Object.entries(headers).forEach(([key, value]) => {
+      if (String(value ?? '').trim()) {
+        parts.push(`-H "${key}: ${String(value)}"`);
+      }
+    });
+
+    if (!['GET', 'DELETE'].includes(this.selectedMethod)) {
+      parts.push(`-d '${this.requestBody || '{}'}'`);
+    }
+
+    return parts.join(' \\\n  ');
+  }
+
   loginMaster(): void {
     this.authLoading = true;
     this.apiDocsService
@@ -324,6 +363,35 @@ export class ApiReferenceComponent {
     }
 
     return responses['create_pattern'] ?? null;
+  }
+
+  getRoutesByAuth(mode: ApiAuthMode): number {
+    return this.endpoints.filter((endpoint) => endpoint.auth === mode).length;
+  }
+
+  getSmokeSteps(): string[] {
+    const items = this.bundle.smokePlan?.steps ?? this.bundle.smokePlan?.master_flow ?? [];
+    return Array.isArray(items) ? items : [];
+  }
+
+  getCatalogSections(): Array<{ label: string; value: string }> {
+    const catalog = this.bundle.catalog ?? {};
+    const sections: Array<{ label: string; value: string }> = [];
+
+    if (catalog.name) {
+      sections.push({ label: 'Nome do catálogo', value: String(catalog.name) });
+    }
+    if (catalog.version) {
+      sections.push({ label: 'Versão', value: String(catalog.version) });
+    }
+    if (catalog.scope) {
+      sections.push({ label: 'Escopo', value: String(catalog.scope) });
+    }
+    if (catalog.modules?.length) {
+      sections.push({ label: 'Módulos', value: String(catalog.modules.length) });
+    }
+
+    return sections;
   }
 
   private safeParse<T>(value: string, fallback: T): T {

@@ -26,6 +26,12 @@
   line-height: 1.55;
 }
 
+.catalog-header small {
+  display: block;
+  margin-top: 10px;
+  color: var(--orbax-text-soft);
+}
+
 .search-box,
 .credential-card label,
 .param-grid label,
@@ -212,6 +218,10 @@ textarea {
   gap: 10px;
 }
 
+.doc-list.ordered {
+  list-style: decimal;
+}
+
 .doc-list li {
   display: grid;
   gap: 4px;
@@ -228,6 +238,11 @@ textarea {
     background: rgba(7, 22, 42, 0.72);
     overflow-wrap: anywhere;
   }
+}
+
+.credential-card strong {
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .response-box {

@@ -31,6 +31,48 @@
 
   <section class="detail-column">
     <article class="playground-card orb-card">
+      <div class="catalog-header">
+        <h3>Panorama da API</h3>
+        <p>Resumo rápido para entender o tamanho da plataforma antes de entrar endpoint por endpoint.</p>
+      </div>
+
+      <div class="credentials-grid">
+        @for (item of authOptions; track item.mode) {
+          <div class="credential-card">
+            <span class="section-tag">{{ item.label }}</span>
+            <strong>{{ getRoutesByAuth(item.mode) }}</strong>
+            <small>rotas curadas nesta documentação</small>
+          </div>
+        }
+      </div>
+
+      @if (getCatalogSections().length) {
+        <div class="endpoint-block">
+          <h4>Catálogo público carregado</h4>
+          <ul class="doc-list">
+            @for (section of getCatalogSections(); track section.label) {
+              <li>
+                <strong>{{ section.label }}</strong>
+                <span>{{ section.value }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (getSmokeSteps().length) {
+        <div class="endpoint-block">
+          <h4>Sequência sugerida de smoke test</h4>
+          <ol class="doc-list ordered">
+            @for (step of getSmokeSteps(); track step) {
+              <li>{{ step }}</li>
+            }
+          </ol>
+        </div>
+      }
+    </article>
+
+    <article class="playground-card orb-card">
       <div class="playground-header">
         <div>
           <h3>Playground autenticado</h3>
@@ -204,6 +246,11 @@
         <div class="request-preview">
           <span class="meta-label">Requisição montada</span>
           <code>{{ requestPreview }}</code>
+        </div>
+
+        <div class="request-preview">
+          <span class="meta-label">Exemplo em curl</span>
+          <code>{{ buildCurlPreview() }}</code>
         </div>
 
         <div class="playground-grid">
