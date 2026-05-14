@@ -1,0 +1,65 @@
+<div class="docs-shell">
+  <aside class="docs-sidebar orb-card">
+    <div class="brand">
+      <img src="assets/images/logo_orb.png" alt="Buildora" />
+      <div>
+        <h1>Buildora Docs</h1>
+        <p>Portal técnico da API e do ecossistema Buildora.</p>
+      </div>
+    </div>
+
+    <nav class="tab-nav">
+      @for (tab of tabs; track tab.route) {
+        <a [routerLink]="tab.route" routerLinkActive="active" class="tab-link">
+          <i [class]="tab.icon"></i>
+          <span>{{ tab.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-card">
+      <span class="sidebar-label">Base da API</span>
+      <strong>{{ baseUrl }}</strong>
+    </div>
+
+    <div class="sidebar-card">
+      <span class="sidebar-label">Tenant de teste</span>
+      <strong>{{ accountCode }}</strong>
+      <small>Use este código nos testes do playground com rotas tenant.</small>
+    </div>
+
+    <div class="sidebar-card">
+      <span class="sidebar-label">Objetivo</span>
+      <small>
+        Documentar cada rota, payload, retorno e fluxo da plataforma, com execução direta no navegador no
+        estilo Swagger, mas adaptado ao negócio da Buildora.
+      </small>
+    </div>
+  </aside>
+
+  <section class="docs-content">
+    <header class="hero orb-card">
+      <div class="hero-copy">
+        <span class="hero-badge">Portal oficial</span>
+        <h2>Documentação central da API Buildora</h2>
+        <p>
+          Esta aplicação explica o papel de cada parte do ecossistema e permite navegar, entender e testar
+          todos os endpoints publicados pela API.
+        </p>
+      </div>
+
+      <div class="hero-highlights">
+        <div class="highlight">
+          <span>Fluxo master</span>
+          <strong>Setup, contas, planos e módulos</strong>
+        </div>
+        <div class="highlight">
+          <span>Fluxo tenant</span>
+          <strong>Obras, diário, produção e relatórios</strong>
+        </div>
+      </div>
+    </header>
+
+    <router-outlet></router-outlet>
+  </section>
+</div>

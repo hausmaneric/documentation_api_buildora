@@ -1,0 +1,266 @@
+.api-layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.catalog-column,
+.endpoint-card,
+.playground-card {
+  padding: 24px;
+  min-width: 0;
+}
+
+.catalog-header h3,
+.playground-header h3,
+.endpoint-title h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.catalog-header p,
+.playground-header p,
+.endpoint-title p {
+  margin: 8px 0 0;
+  color: var(--orbax-text-soft);
+  line-height: 1.55;
+}
+
+.search-box,
+.credential-card label,
+.param-grid label,
+.playground-grid label,
+.full-width {
+  display: grid;
+  gap: 8px;
+}
+
+.search-box span,
+.credential-card span,
+.param-grid span,
+.playground-grid span,
+.full-width span,
+.meta-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--orbax-text-soft);
+  text-transform: uppercase;
+}
+
+input,
+textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(147, 197, 253, 0.14);
+  background: rgba(7, 22, 42, 0.72);
+  color: var(--orbax-text);
+  padding: 13px 14px;
+  resize: vertical;
+}
+
+.category-list,
+.endpoint-list,
+.detail-column {
+  display: grid;
+  gap: 14px;
+}
+
+.category-item,
+.endpoint-item,
+.method-chip,
+.primary-btn {
+  border: 1px solid rgba(147, 197, 253, 0.14);
+  background: rgba(9, 24, 44, 0.8);
+  color: var(--orbax-text);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.category-item,
+.endpoint-item {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.category-item.active,
+.endpoint-item.active,
+.method-chip.active,
+.primary-btn {
+  background: linear-gradient(135deg, #2f6fff 0%, #6aa3ff 100%);
+  border-color: rgba(120, 167, 255, 0.4);
+  color: white;
+}
+
+.endpoint-item {
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    font-size: 0.95rem;
+  }
+
+  span {
+    margin-top: 6px;
+    color: var(--orbax-text-soft);
+    overflow-wrap: anywhere;
+  }
+}
+
+.playground-header,
+.endpoint-title,
+.endpoint-meta,
+.response-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.credentials-grid,
+.playground-grid,
+.param-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.credential-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(7, 22, 42, 0.62);
+  border: 1px solid rgba(147, 197, 253, 0.08);
+  display: grid;
+  gap: 12px;
+}
+
+.section-tag {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(47, 111, 255, 0.12);
+  border: 1px solid rgba(120, 167, 255, 0.2);
+  color: #dbeafe;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.primary-btn {
+  padding: 12px 16px;
+  font-weight: 700;
+}
+
+.message-strip {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(47, 111, 255, 0.12);
+  border: 1px solid rgba(120, 167, 255, 0.2);
+}
+
+.method-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: start;
+}
+
+.method-chip {
+  padding: 10px 14px;
+  min-width: 72px;
+}
+
+.endpoint-meta {
+  margin-top: 18px;
+
+  code {
+    display: inline-block;
+    margin-top: 6px;
+    color: #dbeafe;
+    overflow-wrap: anywhere;
+  }
+}
+
+.endpoint-block {
+  margin-top: 22px;
+
+  h4 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+  }
+
+  pre {
+    margin: 0;
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(7, 22, 42, 0.72);
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+.doc-list,
+.inline-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.doc-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.request-preview {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+
+  code {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(7, 22, 42, 0.72);
+    overflow-wrap: anywhere;
+  }
+}
+
+.response-box {
+  margin-top: 20px;
+  border-radius: 18px;
+  background: rgba(7, 22, 42, 0.72);
+  padding: 18px;
+
+  pre {
+    margin: 12px 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 1200px) {
+  .api-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .credentials-grid,
+  .playground-grid,
+  .param-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .playground-header,
+  .endpoint-title,
+  .endpoint-meta,
+  .response-title {
+    flex-direction: column;
+  }
+}

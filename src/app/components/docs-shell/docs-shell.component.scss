@@ -1,0 +1,187 @@
+.docs-shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  min-height: 100vh;
+  gap: 24px;
+  padding: 24px;
+}
+
+.docs-sidebar {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+
+  img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+
+  p {
+    margin: 6px 0 0;
+    color: var(--orbax-text-soft);
+    line-height: 1.5;
+  }
+}
+
+.tab-nav {
+  display: grid;
+  gap: 10px;
+}
+
+.tab-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(147, 197, 253, 0.12);
+  background: rgba(7, 22, 42, 0.55);
+  transition: 0.2s ease;
+
+  &:hover,
+  &.active {
+    background: linear-gradient(135deg, rgba(47, 111, 255, 0.25), rgba(23, 63, 146, 0.36));
+    border-color: rgba(120, 167, 255, 0.4);
+  }
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.sidebar-card {
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(8, 24, 45, 0.82);
+  border: 1px solid rgba(147, 197, 253, 0.08);
+
+  strong,
+  small,
+  span {
+    display: block;
+  }
+
+  strong {
+    margin-top: 6px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    color: var(--orbax-text-soft);
+    line-height: 1.55;
+    margin-top: 6px;
+  }
+}
+
+.sidebar-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--orbax-text-soft);
+}
+
+.docs-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+}
+
+.hero-copy {
+  min-width: 0;
+
+  h2 {
+    margin: 10px 0;
+    font-size: 2rem;
+  }
+
+  p {
+    margin: 0;
+    max-width: 760px;
+    color: var(--orbax-text-soft);
+    line-height: 1.65;
+  }
+}
+
+.hero-badge {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(47, 111, 255, 0.14);
+  border: 1px solid rgba(120, 167, 255, 0.25);
+  color: #dceafe;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-highlights {
+  display: grid;
+  gap: 12px;
+  width: 320px;
+}
+
+.highlight {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(9, 24, 44, 0.8);
+  border: 1px solid rgba(147, 197, 253, 0.08);
+
+  span {
+    display: block;
+    color: var(--orbax-text-soft);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  strong {
+    display: block;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 1180px) {
+  .docs-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+  }
+
+  .hero-highlights {
+    width: 100%;
+  }
+}

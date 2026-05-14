@@ -1,0 +1,268 @@
+﻿<section class="resource-page">
+  @if (toasts.length) {
+    <div class="toast-stack">
+      @for (toast of toasts; track toast.id) {
+        <div class="toast-item" [class.success]="toast.type === 'success'" [class.error]="toast.type === 'error'" [class.info]="toast.type === 'info'">
+          <div>
+            <strong>{{ toast.title }}</strong>
+            <p>{{ toast.message }}</p>
+          </div>
+          <button type="button" class="toast-close" (click)="dismissToast(toast.id)">x</button>
+        </div>
+      }
+    </div>
+  }
+
+  @if (loading) {
+    <article class="resource-body orb-card loading-state">
+      <div class="loading-skeleton">
+        <span class="skeleton-line w-40"></span>
+        <span class="skeleton-line w-70"></span>
+        <span class="skeleton-line w-55"></span>
+      </div>
+      <strong>Carregando {{ title.toLowerCase() }}...</strong>
+    </article>
+  } @else if (placeholder) {
+    <article class="resource-body orb-card placeholder-state">
+      <strong>{{ title }}</strong>
+      <p>{{ placeholderMessage }}</p>
+    </article>
+  } @else {
+    <article class="resource-body orb-card">
+      <div class="resource-topline">
+        <div class="resource-summary">
+          <span class="metric-pill">Total: <strong>{{ totalItems }}</strong></span>
+          <span class="metric-pill">Página: <strong>{{ currentPage }}</strong></span>
+          <span class="metric-pill">Mostrando: <strong>{{ rows.length }}</strong></span>
+          <span class="metric-pill">Busca: <strong>{{ appliedSearch || 'Sem filtro' }}</strong></span>
+        </div>
+
+        <div class="resource-topline-actions">
+          <button ejs-button class="primary-action" type="button" (click)="openCreateDialog()">Novo cadastro</button>
+        </div>
+      </div>
+
+      <div class="resource-toolbar">
+        <div class="resource-search">
+          <ejs-textbox cssClass="orb-input" placeholder="Buscar registros..." [value]="searchTerm" (input)="searchTerm = $any($event.target).value"></ejs-textbox>
+        </div>
+        <button ejs-button cssClass="dialog-secondary" type="button" (click)="clearSearch()">Limpar</button>
+        <button ejs-button cssClass="dialog-primary" type="button" (click)="applySearch()">Buscar</button>
+        <button ejs-button cssClass="dialog-secondary" type="button" (click)="exportCsv()">Exportar CSV</button>
+        <button ejs-button cssClass="dialog-secondary" type="button" (click)="exportJson()">Exportar JSON</button>
+      </div>
+
+      <div class="resource-controls">
+        <div class="control-item">
+          <label>Ordenar por</label>
+          <ejs-dropdownlist
+            [dataSource]="sortOptions"
+            [fields]="{ text: 'text', value: 'id' }"
+            [value]="sortField"
+            (change)="changeSortField($any($event).value)">
+          </ejs-dropdownlist>
+        </div>
+        <div class="control-item">
+          <label>Direção</label>
+          <ejs-dropdownlist
+            [dataSource]="sortDirectionOptions"
+            [fields]="{ text: 'text', value: 'id' }"
+            [value]="sortDirection"
+            (change)="changeSortDirection($any($event).value)">
+          </ejs-dropdownlist>
+        </div>
+        <div class="control-item">
+          <label>Tamanho da página</label>
+          <ejs-dropdownlist
+            [dataSource]="pageSizeOptions"
+            [fields]="{ text: 'text', value: 'id' }"
+            [value]="pageSize"
+            (change)="changePageSize($any($event).value)">
+          </ejs-dropdownlist>
+        </div>
+      </div>
+
+      @if (filteredRows.length) {
+        <div class="grid-shell">
+          <table class="resource-grid">
+            <colgroup>
+              @for (column of columns; track column.field) {
+                <col [style.width.px]="column.width" [style.min-width.px]="column.width" />
+              }
+              <col [style.width.px]="actionColumnWidth()" [style.min-width.px]="actionColumnWidth()" />
+            </colgroup>
+            <thead>
+              <tr>
+                @for (column of columns; track column.field) {
+                  <th [title]="column.headerText">{{ column.headerText }}</th>
+                }
+                <th class="actions-column">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of filteredRows; track row.id ?? row.code ?? $index) {
+                <tr>
+                  @for (column of columns; track column.field) {
+                    <td [title]="row?.[column.field] ?? ''">
+                      @if (isBadgeField(column.field)) {
+                        <span class="status-badge" [class]="'status-badge ' + badgeTone(column.field, row?.[column.field])">
+                          {{ row?.[column.field] ?? '-' }}
+                        </span>
+                      } @else {
+                        {{ row?.[column.field] ?? '-' }}
+                      }
+                    </td>
+                  }
+                  <td class="actions-column">
+                    <div class="row-actions">
+                      <button ejs-button cssClass="row-action edit icon-only" type="button" title="Editar registro" [disabled]="!canEdit(row)" (click)="openEditDialog(row)">
+                        <span class="row-action-icon">✎</span>
+                      </button>
+                      <button ejs-button cssClass="row-action duplicate icon-only" type="button" title="Duplicar registro" [disabled]="!canDuplicate(row)" (click)="openDuplicateDialog(row)">
+                        <span class="row-action-icon">⧉</span>
+                      </button>
+                      <button ejs-button cssClass="row-action delete icon-only" type="button" [disabled]="!canDelete(row)" [title]="disabledReason(row) || 'Remover registro'" (click)="deleteRow(row)">
+                        <span class="row-action-icon">✕</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pager-bar">
+          <button ejs-button cssClass="dialog-secondary" type="button" [disabled]="offset <= 0" (click)="previousPage()">Anterior</button>
+          <div class="pager-info">{{ totalRowsLabel() }}</div>
+          <button ejs-button cssClass="dialog-primary" type="button" [disabled]="!hasNext" (click)="nextPage()">Próxima</button>
+        </div>
+      } @else {
+        <div class="empty-grid-state">
+          <strong>Nenhum registro encontrado</strong>
+          <p>Ajuste a busca ou crie um novo cadastro para este módulo.</p>
+        </div>
+      }
+    </article>
+  }
+
+  <ejs-dialog #createDialog [visible]="false" [isModal]="true" width="760px" [header]="dialogTitle()">
+    <form class="create-form" [formGroup]="createForm">
+      @switch (resource) {
+        @case ('accounts') {
+          <div class="form-grid two-cols">
+            <div class="form-field">
+              <label>Código</label>
+              <ejs-textbox formControlName="code" cssClass="orb-input"></ejs-textbox>
+            </div>
+            <div class="form-field">
+              <label>Empresa / Conta</label>
+              <ejs-textbox formControlName="name" cssClass="orb-input"></ejs-textbox>
+            </div>
+            <div class="form-field">
+              <label>Documento</label>
+              <ejs-textbox formControlName="document" cssClass="orb-input" (input)="maskField('document')"></ejs-textbox>
+              @if (fieldError('document')) { <small class="field-error">{{ fieldError('document') }}</small> }
+            </div>
+            <div class="form-field">
+              <label>Telefone</label>
+              <ejs-textbox formControlName="phone" cssClass="orb-input" (input)="maskField('phone')"></ejs-textbox>
+            </div>
+            <div class="form-field">
+              <label>E-mail</label>
+              <ejs-textbox formControlName="email" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('email')) { <small class="field-error">{{ fieldError('email') }}</small> }
+            </div>
+            <div class="form-field">
+              <label>Plano</label>
+              <ejs-dropdownlist formControlName="plan_id" [dataSource]="planOptions" [fields]="{ text: 'text', value: 'id' }"></ejs-dropdownlist>
+            </div>
+            <div class="form-field full-span">
+              <label>URL do banco do tenant</label>
+              <ejs-textbox formControlName="database_url" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('database_url')) { <small class="field-error">{{ fieldError('database_url') }}</small> }
+            </div>
+            <div class="form-field">
+              <label>Limite de armazenamento (MB)</label>
+              <ejs-textbox formControlName="storage_limit_mb" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('storage_limit_mb')) { <small class="field-error">{{ fieldError('storage_limit_mb') }}</small> }
+            </div>
+            <div class="form-field">
+              <label>Vencimento</label>
+              <ejs-textbox formControlName="expiration_date" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('expiration_date')) { <small class="field-error">{{ fieldError('expiration_date') }}</small> }
+            </div>
+          </div>
+        }
+        @case ('plans') {
+          <div class="form-grid two-cols">
+            <div class="form-field">
+              <label>Nome</label>
+              <ejs-textbox formControlName="name" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('name')) { <small class="field-error">{{ fieldError('name') }}</small> }
+            </div>
+            <div class="form-field">
+              <label>Preço</label>
+              <ejs-textbox formControlName="price" cssClass="orb-input"></ejs-textbox>
+              @if (fieldError('price')) { <small class="field-error">{{ fieldError('price') }}</small> }
+            </div>
+            <div class="form-field full-span">
+              <label>Descrição</label>
+              <ejs-textbox formControlName="description" cssClass="orb-input"></ejs-textbox>
+            </div>
+            <div class="form-field"><label>Máximo de empresas</label><ejs-textbox formControlName="max_companies" cssClass="orb-input"></ejs-textbox>@if (fieldError('max_companies')) { <small class="field-error">{{ fieldError('max_companies') }}</small> }</div>
+            <div class="form-field"><label>Máximo de usuários</label><ejs-textbox formControlName="max_users" cssClass="orb-input"></ejs-textbox>@if (fieldError('max_users')) { <small class="field-error">{{ fieldError('max_users') }}</small> }</div>
+            <div class="form-field"><label>Máximo de obras</label><ejs-textbox formControlName="max_works" cssClass="orb-input"></ejs-textbox>@if (fieldError('max_works')) { <small class="field-error">{{ fieldError('max_works') }}</small> }</div>
+            <div class="form-field"><label>Armazenamento (MB)</label><ejs-textbox formControlName="max_storage_mb" cssClass="orb-input"></ejs-textbox>@if (fieldError('max_storage_mb')) { <small class="field-error">{{ fieldError('max_storage_mb') }}</small> }</div>
+          </div>
+        }
+        @case ('modules') {
+          <div class="form-grid">
+            <div class="form-field"><label>Código</label><ejs-textbox formControlName="code" cssClass="orb-input"></ejs-textbox>@if (fieldError('code')) { <small class="field-error">{{ fieldError('code') }}</small> }</div>
+            <div class="form-field"><label>Nome</label><ejs-textbox formControlName="name" cssClass="orb-input"></ejs-textbox>@if (fieldError('name')) { <small class="field-error">{{ fieldError('name') }}</small> }</div>
+            <div class="form-field"><label>Descrição</label><ejs-textbox formControlName="description" cssClass="orb-input"></ejs-textbox></div>
+          </div>
+        }
+        @case ('masterUsers') {
+          <div class="form-grid two-cols">
+            <div class="form-field"><label>Nome</label><ejs-textbox formControlName="name" cssClass="orb-input"></ejs-textbox>@if (fieldError('name')) { <small class="field-error">{{ fieldError('name') }}</small> }</div>
+            <div class="form-field"><label>Login</label><ejs-textbox formControlName="login" cssClass="orb-input"></ejs-textbox>@if (fieldError('login')) { <small class="field-error">{{ fieldError('login') }}</small> }</div>
+            <div class="form-field"><label>E-mail</label><ejs-textbox formControlName="email" cssClass="orb-input"></ejs-textbox>@if (fieldError('email')) { <small class="field-error">{{ fieldError('email') }}</small> }</div>
+            <div class="form-field"><label>Senha</label><ejs-textbox formControlName="password" cssClass="orb-input"></ejs-textbox></div>
+            <div class="form-field"><label>Telefone</label><ejs-textbox formControlName="phone" cssClass="orb-input"></ejs-textbox></div>
+            <div class="form-field">
+              <label>Perfil</label>
+              <ejs-dropdownlist formControlName="role" [dataSource]="roleOptions" [fields]="{ text: 'text', value: 'id' }"></ejs-dropdownlist>
+            </div>
+          </div>
+        }
+        @case ('accountModules') {
+          <div class="form-grid two-cols">
+            <div class="form-field">
+              <label>Conta</label>
+              <ejs-dropdownlist formControlName="account_id" [dataSource]="accountOptions" [fields]="{ text: 'text', value: 'id' }"></ejs-dropdownlist>
+            </div>
+            <div class="form-field">
+              <label>Módulo</label>
+              <ejs-dropdownlist formControlName="module_code" [dataSource]="moduleOptions" [fields]="{ text: 'text', value: 'id' }"></ejs-dropdownlist>
+            </div>
+          </div>
+        }
+      }
+
+      @if (dialogMessage) {
+        <div class="dialog-error">{{ dialogMessage }}</div>
+      }
+    </form>
+
+    <ng-template #footerTemplate>
+      <div class="dialog-actions">
+        <button ejs-button type="button" cssClass="dialog-secondary" (click)="closeCreateDialog()">Cancelar</button>
+        <button ejs-button type="button" cssClass="dialog-primary" (click)="submitCreate()">
+          {{ saving ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </ng-template>
+  </ejs-dialog>
+</section>
+

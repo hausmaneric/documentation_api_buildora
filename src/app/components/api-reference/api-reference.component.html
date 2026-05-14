@@ -1,0 +1,207 @@
+<section class="api-layout">
+  <aside class="catalog-column orb-card">
+    <div class="catalog-header">
+      <h3>Mapa da API</h3>
+      <p>Rotas públicas, master e tenant organizadas por domínio.</p>
+    </div>
+
+    <label class="search-box">
+      <span>Buscar rota</span>
+      <input [(ngModel)]="endpointSearch" (ngModelChange)="applyFilter()" placeholder="Ex.: /api/v1/projects" />
+    </label>
+
+    <div class="category-list">
+      @for (category of categories; track category) {
+        <button type="button" class="category-item" [class.active]="selectedCategory === category" (click)="changeCategory(category)">
+          {{ category }}
+        </button>
+      }
+    </div>
+
+    <div class="endpoint-list">
+      @for (endpoint of filteredEndpoints; track endpoint.id) {
+        <button type="button" class="endpoint-item" [class.active]="selectedEndpoint?.id === endpoint.id" (click)="selectEndpoint(endpoint)">
+          <strong>{{ endpoint.title }}</strong>
+          <span>{{ endpoint.path }}</span>
+        </button>
+      }
+    </div>
+  </aside>
+
+  <section class="detail-column">
+    <article class="playground-card orb-card">
+      <div class="playground-header">
+        <div>
+          <h3>Playground autenticado</h3>
+          <p>Use o tenant <strong>{{ session.accountCode }}</strong> para testar o fluxo real, no estilo Swagger.</p>
+        </div>
+      </div>
+
+      <div class="credentials-grid">
+        <div class="credential-card">
+          <span class="section-tag">Master</span>
+          <label>
+            <span>Login</span>
+            <input [(ngModel)]="session.masterLogin" (ngModelChange)="persistSession()" />
+          </label>
+          <label>
+            <span>Senha</span>
+            <input [(ngModel)]="session.masterPassword" type="password" (ngModelChange)="persistSession()" />
+          </label>
+          <button type="button" class="primary-btn" (click)="loginMaster()" [disabled]="authLoading">Carregar token master</button>
+          <small>{{ session.masterToken ? (session.masterToken | slice:0:42) + '...' : 'Ainda sem token master.' }}</small>
+        </div>
+
+        <div class="credential-card">
+          <span class="section-tag">Tenant</span>
+          <label>
+            <span>Código da empresa</span>
+            <input [(ngModel)]="session.accountCode" (ngModelChange)="persistSession()" />
+          </label>
+          <label>
+            <span>E-mail</span>
+            <input [(ngModel)]="session.tenantEmail" (ngModelChange)="persistSession()" />
+          </label>
+          <label>
+            <span>Senha</span>
+            <input [(ngModel)]="session.tenantPassword" type="password" (ngModelChange)="persistSession()" />
+          </label>
+          <button type="button" class="primary-btn" (click)="loginTenant()" [disabled]="authLoading">Carregar token tenant</button>
+          <small>{{ session.tenantToken ? (session.tenantToken | slice:0:42) + '...' : 'Ainda sem token tenant.' }}</small>
+        </div>
+      </div>
+
+      @if (message) {
+        <div class="message-strip">{{ message }}</div>
+      }
+    </article>
+
+    @if (selectedEndpoint) {
+      <article class="endpoint-card orb-card">
+        <div class="endpoint-title">
+          <div>
+            <span class="section-tag">{{ selectedEndpoint.category }}</span>
+            <h3>{{ selectedEndpoint.title }}</h3>
+            <p>{{ selectedEndpoint.description }}</p>
+          </div>
+
+          <div class="method-badges">
+            @for (method of selectedEndpoint.methods; track method) {
+              <button type="button" class="method-chip" [class.active]="selectedMethod === method" (click)="selectedMethod = method; requestBody = buildExampleBody(selectedEndpoint!, method); buildRequestPreview()">
+                {{ method }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="endpoint-meta">
+          <div>
+            <span class="meta-label">Path</span>
+            <code>{{ selectedEndpoint.path }}</code>
+          </div>
+          <div>
+            <span class="meta-label">Autenticação</span>
+            <strong>{{ authMode === 'public' ? 'Pública' : authMode === 'master' ? 'Master' : 'Tenant' }}</strong>
+          </div>
+        </div>
+
+        @if (selectedEndpoint.aliases?.length) {
+          <div class="endpoint-block">
+            <h4>Aliases compatíveis</h4>
+            <ul class="inline-list">
+              @for (alias of selectedEndpoint.aliases; track alias) {
+                <li><code>{{ alias }}</code></li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (selectedEndpoint.headers?.length) {
+          <div class="endpoint-block">
+            <h4>Headers esperados</h4>
+            <ul class="doc-list">
+              @for (header of selectedEndpoint.headers; track header.name) {
+                <li>
+                  <strong>{{ header.name }}</strong>
+                  <span>{{ header.description }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (selectedEndpoint.pathParams?.length) {
+          <div class="endpoint-block">
+            <h4>Parâmetros de path</h4>
+            <div class="param-grid">
+              @for (param of selectedEndpoint.pathParams; track param.name) {
+                <label>
+                  <span>{{ param.label }}</span>
+                  <input [(ngModel)]="pathParams[param.name]" (ngModelChange)="buildRequestPreview()" [placeholder]="param.description" />
+                </label>
+              }
+            </div>
+          </div>
+        }
+
+        @if (getPayloadReference(selectedMethod)) {
+          <div class="endpoint-block">
+            <h4>Schema do body</h4>
+            <pre>{{ getPayloadReference(selectedMethod) | json }}</pre>
+          </div>
+        }
+
+        @if (getResponseReference()) {
+          <div class="endpoint-block">
+            <h4>Resposta de referência</h4>
+            <pre>{{ getResponseReference() | json }}</pre>
+          </div>
+        }
+      </article>
+
+      <article class="playground-card orb-card">
+        <div class="playground-header">
+          <div>
+            <span class="section-tag">Teste ao vivo</span>
+            <h3>Executar endpoint</h3>
+            <p>{{ selectedEndpoint.summary }}</p>
+          </div>
+          <button type="button" class="primary-btn" (click)="runRequest()" [disabled]="requestRunning">
+            {{ requestRunning ? 'Executando...' : 'Testar endpoint' }}
+          </button>
+        </div>
+
+        <div class="request-preview">
+          <span class="meta-label">Requisição montada</span>
+          <code>{{ requestPreview }}</code>
+        </div>
+
+        <div class="playground-grid">
+          <label>
+            <span>Query params (JSON)</span>
+            <textarea rows="8" [(ngModel)]="queryParams" (ngModelChange)="buildRequestPreview()"></textarea>
+          </label>
+          <label>
+            <span>Headers extras (JSON)</span>
+            <textarea rows="8" [(ngModel)]="customHeaders" (ngModelChange)="buildRequestPreview()"></textarea>
+          </label>
+        </div>
+
+        @if (!['GET', 'DELETE'].includes(selectedMethod)) {
+          <label class="full-width">
+            <span>Body (JSON)</span>
+            <textarea rows="14" [(ngModel)]="requestBody"></textarea>
+          </label>
+        }
+
+        <div class="response-box">
+          <div class="response-title">
+            <h4>Resposta</h4>
+            <span>{{ responseStatus || 'Aguardando execução' }}</span>
+          </div>
+          <pre>{{ responseBody || 'Nenhuma resposta ainda.' }}</pre>
+        </div>
+      </article>
+    }
+  </section>
+</section>

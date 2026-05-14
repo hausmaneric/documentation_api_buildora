@@ -1,0 +1,33 @@
+<section class="overview-grid">
+  @for (card of cards; track card.id) {
+    <article class="overview-card orb-card" [class]="'tone-' + card.tone">
+      <header>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.subtitle }}</p>
+      </header>
+
+      <ul>
+        @for (bullet of card.bullets; track bullet) {
+          <li>{{ bullet }}</li>
+        }
+      </ul>
+    </article>
+  }
+</section>
+
+<section class="flow-section orb-card">
+  <div class="flow-copy">
+    <span class="flow-label">Fluxo recomendado</span>
+    <h3>Como o ecossistema se conecta na prática</h3>
+    <p>
+      A administração governa contas, plano e módulos. O banco master mantém as empresas e aponta para um banco
+      por tenant. O web do cliente e o app de campo usam o mesmo código da empresa para autenticar e operar.
+    </p>
+  </div>
+
+  <ol class="flow-list">
+    @for (step of flow; track step) {
+      <li>{{ step }}</li>
+    }
+  </ol>
+</section>
