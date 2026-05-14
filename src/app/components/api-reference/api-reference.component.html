@@ -3,6 +3,7 @@
     <div class="catalog-header">
       <h3>Mapa da API</h3>
       <p>Rotas públicas, master e tenant organizadas por domínio.</p>
+      <small>{{ totalRoutes }} rotas detectadas automaticamente na API publicada.</small>
     </div>
 
     <label class="search-box">
@@ -87,7 +88,11 @@
 
           <div class="method-badges">
             @for (method of selectedEndpoint.methods; track method) {
-              <button type="button" class="method-chip" [class.active]="selectedMethod === method" (click)="selectedMethod = method; requestBody = buildExampleBody(selectedEndpoint!, method); buildRequestPreview()">
+              <button
+                type="button"
+                class="method-chip"
+                [class.active]="selectedMethod === method"
+                (click)="selectedMethod = method; requestBody = buildExampleBody(selectedEndpoint!, method); buildRequestPreview()">
                 {{ method }}
               </button>
             }
@@ -104,6 +109,17 @@
             <strong>{{ authMode === 'public' ? 'Pública' : authMode === 'master' ? 'Master' : 'Tenant' }}</strong>
           </div>
         </div>
+
+        @if (selectedEndpoint.notes?.length) {
+          <div class="endpoint-block">
+            <h4>Observações</h4>
+            <ul class="doc-list">
+              @for (note of selectedEndpoint.notes; track note) {
+                <li>{{ note }}</li>
+              }
+            </ul>
+          </div>
+        }
 
         @if (selectedEndpoint.aliases?.length) {
           <div class="endpoint-block">
@@ -144,10 +160,24 @@
           </div>
         }
 
+        @if (getQueryReference()) {
+          <div class="endpoint-block">
+            <h4>Referência de query params</h4>
+            <pre>{{ getQueryReference() | json }}</pre>
+          </div>
+        }
+
         @if (getPayloadReference(selectedMethod)) {
           <div class="endpoint-block">
             <h4>Schema do body</h4>
             <pre>{{ getPayloadReference(selectedMethod) | json }}</pre>
+          </div>
+        }
+
+        @if (getRequestExampleReference(selectedEndpoint, selectedMethod)) {
+          <div class="endpoint-block">
+            <h4>Exemplo de body</h4>
+            <pre>{{ getRequestExampleReference(selectedEndpoint, selectedMethod) | json }}</pre>
           </div>
         }
 

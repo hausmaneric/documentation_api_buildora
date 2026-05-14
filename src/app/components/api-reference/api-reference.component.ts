@@ -3,8 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { ApiDocsService } from '../../services/api-docs.service';
 import { ApiAuthMode, ApiEndpointDoc, ApiReferenceBundle, PlaygroundSession } from '../../models/api-docs';
+import { ApiDocsService } from '../../services/api-docs.service';
 
 @Component({
   selector: 'app-api-reference',
@@ -36,6 +36,7 @@ export class ApiReferenceComponent {
   authLoading = false;
   message = '';
   bundle: ApiReferenceBundle = {};
+  totalRoutes = 0;
 
   constructor(private apiDocsService: ApiDocsService) {
     this.session = this.apiDocsService.getStoredSession();
@@ -53,6 +54,7 @@ export class ApiReferenceComponent {
       .subscribe({
         next: (bundle) => {
           this.bundle = bundle;
+          this.totalRoutes = (bundle.routes ?? []).length;
           this.endpoints = this.apiDocsService.buildCompleteCatalog(bundle);
           this.categories = [...new Set(this.endpoints.map((endpoint) => endpoint.category))];
           this.selectedCategory = this.categories[0] ?? '';
@@ -123,6 +125,8 @@ export class ApiReferenceComponent {
         query[key] = '0';
       } else if (key === 'sort_direction') {
         query[key] = 'desc';
+      } else if (key === 'sort_field') {
+        query[key] = 'id';
       } else {
         query[key] = '';
       }
@@ -131,14 +135,14 @@ export class ApiReferenceComponent {
   }
 
   buildExampleBody(endpoint: ApiEndpointDoc, method: string): string {
+    const example = this.getRequestExampleReference(endpoint, method);
+    if (example) {
+      return JSON.stringify(example, null, 2);
+    }
+
     const bodyRef = endpoint.bodyRefs?.[method];
     if (!bodyRef) {
       return '{}';
-    }
-
-    const example = (this.bundle.examples ?? {})[bodyRef];
-    if (example) {
-      return JSON.stringify(example, null, 2);
     }
 
     const payload = (this.bundle.payloads ?? {})[bodyRef];
@@ -273,12 +277,53 @@ export class ApiReferenceComponent {
     return ref ? (this.bundle.payloads ?? {})[ref] : null;
   }
 
-  getResponseReference(): any {
-    const endpointKey = this.selectedEndpoint?.id;
-    if (!endpointKey) {
+  getQueryReference(): any {
+    if (!this.selectedEndpoint) {
       return null;
     }
-    return (this.bundle.responses ?? {})[endpointKey] ?? null;
+
+    const entries = Object.entries(this.bundle.queries ?? {});
+    const match = entries.find(([, value]) => {
+      const path = value?.path;
+      return path === this.selectedEndpoint?.path || this.selectedEndpoint?.aliases?.includes(path);
+    });
+    return match ? match[1] : null;
+  }
+
+  getRequestExampleReference(endpoint: ApiEndpointDoc, method: string): any {
+    const examples = this.bundle.examples ?? {};
+    const entries = Object.entries(examples);
+    const match = entries.find(([, value]) => {
+      const path = value?.path;
+      const exampleMethod = String(value?.method ?? '').toUpperCase();
+      return exampleMethod === method && (path === endpoint.path || endpoint.aliases?.includes(path));
+    });
+    return match ? match[1]?.body ?? match[1] : null;
+  }
+
+  getResponseReference(): any {
+    if (!this.selectedEndpoint) {
+      return null;
+    }
+
+    const responses = this.bundle.responses ?? {};
+    const explicitMap: Record<string, string> = {
+      'diary-detail': 'diary.detail',
+      'operational-dashboard': 'dashboard.operational',
+      reports: 'reports.project_summary',
+      'audit-suite': 'audit.logs'
+    };
+
+    const explicitKey = explicitMap[this.selectedEndpoint.id];
+    if (explicitKey && responses[explicitKey]) {
+      return responses[explicitKey];
+    }
+
+    if (this.selectedMethod === 'GET') {
+      return responses['list_pattern'] ?? null;
+    }
+
+    return responses['create_pattern'] ?? null;
   }
 
   private safeParse<T>(value: string, fallback: T): T {

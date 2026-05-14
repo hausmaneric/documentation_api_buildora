@@ -2,9 +2,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { forkJoin, map, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { defaultAccountCode, docsStorageKey, apiURL } from '../resources';
-import { ApiAuthMode, ApiEndpointDoc, ApiReferenceBundle, PlaygroundSession } from '../models/api-docs';
 import { endpointCatalog } from '../data/api-endpoints.catalog';
+import { ApiAuthMode, ApiEndpointDoc, ApiReferenceBundle, PlaygroundSession } from '../models/api-docs';
+import { apiURL, defaultAccountCode, docsStorageKey } from '../resources';
+import { normalizeDeep } from '../utils/text-normalizer';
 
 @Injectable({ providedIn: 'root' })
 export class ApiDocsService {
@@ -15,7 +16,7 @@ export class ApiDocsService {
   }
 
   getStaticCatalog(): ApiEndpointDoc[] {
-    return endpointCatalog;
+    return normalizeDeep(endpointCatalog);
   }
 
   loadReferenceBundle(): Observable<ApiReferenceBundle> {
@@ -27,7 +28,7 @@ export class ApiDocsService {
       responses: this.http.get<any>(`${apiURL}responses`).pipe(map((result) => result?.data?.responses ?? {}), catchError(() => of({}))),
       smokePlan: this.http.get<any>(`${apiURL}smoke-plan`).pipe(map((result) => result?.data ?? null), catchError(() => of(null))),
       catalog: this.http.get<any>(`${apiURL}catalog`).pipe(map((result) => result?.data ?? null), catchError(() => of(null)))
-    });
+    }).pipe(map((bundle) => normalizeDeep(bundle)));
   }
 
   getStoredSession(): PlaygroundSession {
@@ -107,8 +108,7 @@ export class ApiDocsService {
           category: 'Rotas adicionais',
           title: route.endpoint,
           summary: 'Rota descoberta automaticamente.',
-          description:
-            'Esta rota foi encontrada no catálogo público da API, mas ainda não recebeu descrição curada nesta documentação.',
+          description: 'Esta rota foi encontrada no catálogo público da API, mas ainda não recebeu descrição curada nesta documentação.',
           path: route.path,
           methods: route.methods ?? ['GET'],
           auth: route.requires_token_path ? 'tenant' : 'public'

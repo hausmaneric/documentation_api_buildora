@@ -12,7 +12,7 @@ import { apiURL, defaultAccountCode } from '../../resources';
 })
 export class DocsShellComponent {
   readonly tabs = [
-    { label: 'Aplicações', route: '/applications', icon: 'pi pi-objects-column' },
+    { label: 'Aplicações', route: '/applications', icon: 'pi pi-sitemap' },
     { label: 'Documentação da API', route: '/api', icon: 'pi pi-code' }
   ];
 

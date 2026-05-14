@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { applicationsOverview, implementationFlow } from '../../data/applications.data';
+import { normalizeDeep } from '../../utils/text-normalizer';
 
 @Component({
   selector: 'app-applications-overview',
@@ -10,6 +11,6 @@ import { applicationsOverview, implementationFlow } from '../../data/application
   styleUrl: './applications-overview.component.scss'
 })
 export class ApplicationsOverviewComponent {
-  readonly cards = applicationsOverview;
-  readonly flow = implementationFlow;
+  readonly cards = normalizeDeep(applicationsOverview);
+  readonly flow = normalizeDeep(implementationFlow);
 }
