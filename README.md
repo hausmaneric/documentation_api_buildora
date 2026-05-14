@@ -1,23 +1,15 @@
 # Buildora API Documentation
 
-Aplicação Angular para documentar toda a API Buildora/Obrax.
+Aplicação Angular criada para documentar toda a API Buildora/Obrax e permitir testes reais dos endpoints publicados.
 
 ## Objetivo
 
 O projeto possui duas frentes principais:
 
-- explicar o papel de cada aplicação do ecossistema
+- explicar o papel de cada aplicação do ecossistema Buildora
 - documentar e testar a API inteira, no estilo playground/Swagger
 
-## Stack
-
-- Angular 21
-- SCSS
-- HttpClient
-- Syncfusion disponível no projeto-base
-- Deploy preparado para Railway
-
-## Abas da aplicação
+## Estrutura da aplicação
 
 ### 1. Aplicações
 
@@ -36,6 +28,7 @@ Inclui:
 
 - catálogo de rotas
 - organização por domínio
+- query params por fluxo
 - payloads obrigatórios e opcionais
 - exemplos de body
 - exemplos de resposta
@@ -49,11 +42,19 @@ O playground já nasce preparado com:
 - login master padrão
 - login tenant da empresa de teste
 
+## Stack
+
+- Angular 21
+- SCSS
+- HttpClient
+- catálogo dinâmico consumindo a própria API pública
+- deploy preparado para Railway
+
 ## Desenvolvimento local
 
 ```bash
 npm install
-npm run start
+npm start
 ```
 
 ## Build
@@ -72,9 +73,10 @@ O projeto já está preparado com:
 
 - `Dockerfile` multi-stage
 - `nginx.conf.template`
-- suporte ao `PORT` do Railway
+- suporte ao `PORT` injetado pelo Railway
+- fallback SPA para `index.html`
 
-Fluxo:
+Fluxo sugerido:
 
 1. subir este repositório para o GitHub
 2. criar `New Project` no Railway
@@ -84,7 +86,7 @@ Fluxo:
 
 ## API alvo
 
-Por padrão a documentação aponta para:
+Por padrão, a documentação aponta para:
 
 - `https://web-production-1d13c.up.railway.app/api/v1/`
 
